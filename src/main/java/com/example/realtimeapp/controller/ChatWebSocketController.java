@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import java.security.Principal;
 
 @Controller
 public class ChatWebSocketController {
@@ -29,12 +30,12 @@ public class ChatWebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/chat.send")
-    public void sendMessage(ChatMessageRequest request){
+    public void sendMessage(ChatMessageRequest request, Principal principal){
 
         Chat chat = chatRepository.findById(request.getChatId())
                 .orElseThrow(() -> new RuntimeException("Chat is not found"));
 
-        User sender = userRepository.findById(request.getSenderId())
+        User sender = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException(("User is not found")));
 
         Message message = new Message();
