@@ -13,6 +13,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import java.security.Principal;
+import com.example.realtimeapp.dto.TypingRequest;
+import com.example.realtimeapp.dto.TypingNotification;
 
 @Controller
 public class ChatWebSocketController {
@@ -48,6 +50,19 @@ public class ChatWebSocketController {
         MessageDto messageDto = new MessageDto(savedMessage);
 
         messagingTemplate.convertAndSend("/topic/chat/" + chat.getId(), messageDto);
+    }
+
+    @MessageMapping("/chat.typing")
+    public void handleTyping(TypingRequest request, Principal principal){
+
+        System.out.println("ПОЛУЧЕНО событие печати от: " + principal.getName() + ", isTyping=" + request.isTyping());
+
+        User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User is not found"));
+
+        TypingNotification notification = new TypingNotification(user.getUsername(), request.isTyping());
+
+        messagingTemplate.convertAndSend("/topic/chat/" + request.getChatId() + "/typing", notification);
     }
 
 
