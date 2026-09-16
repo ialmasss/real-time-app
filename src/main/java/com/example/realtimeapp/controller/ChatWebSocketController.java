@@ -15,6 +15,9 @@ import org.springframework.stereotype.Controller;
 import java.security.Principal;
 import com.example.realtimeapp.dto.TypingRequest;
 import com.example.realtimeapp.dto.TypingNotification;
+import com.example.realtimeapp.dto.ReadReceiptNotification;
+import com.example.realtimeapp.dto.ReadReceiptRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 @Controller
 public class ChatWebSocketController {
@@ -63,6 +66,27 @@ public class ChatWebSocketController {
         TypingNotification notification = new TypingNotification(user.getUsername(), request.isTyping());
 
         messagingTemplate.convertAndSend("/topic/chat/" + request.getChatId() + "/typing", notification);
+    }
+
+    @Transactional
+    @MessageMapping("/chat.read")
+    public void markAsRead(ReadReceiptRequest request, Principal principal) {
+
+        User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User is not found"));
+
+        Message message = messageRepository.findById(request.getMessageId())
+                .orElseThrow(() -> new RuntimeException("Message is not found"));
+
+        message.getReadBy().add(user);
+        messageRepository.save(message);
+
+        ReadReceiptNotification notification = new ReadReceiptNotification(message.getId(), user.getId());
+
+        messagingTemplate.convertAndSend(
+                "/topic/chat/" + message.getChat().getId() + "/read",
+                notification
+        );
     }
 
 
