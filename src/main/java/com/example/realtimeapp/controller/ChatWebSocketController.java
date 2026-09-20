@@ -18,9 +18,17 @@ import com.example.realtimeapp.dto.TypingNotification;
 import com.example.realtimeapp.dto.ReadReceiptNotification;
 import com.example.realtimeapp.dto.ReadReceiptRequest;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.realtimeapp.service.RedisMessagePublisher;
+import org.springframework.data.redis.listener.ChannelTopic;
 
 @Controller
 public class ChatWebSocketController {
+
+    @Autowired
+    private RedisMessagePublisher redisMessagePublisher;
+
+    @Autowired
+    private ChannelTopic chatTopic;
 
     @Autowired
     private MessageRepository messageRepository;
@@ -52,13 +60,13 @@ public class ChatWebSocketController {
 
         MessageDto messageDto = new MessageDto(savedMessage);
 
-        messagingTemplate.convertAndSend("/topic/chat/" + chat.getId(), messageDto);
+        redisMessagePublisher.publish(chatTopic.getTopic(), messageDto);
     }
 
     @MessageMapping("/chat.typing")
     public void handleTyping(TypingRequest request, Principal principal){
 
-        System.out.println("ПОЛУЧЕНО событие печати от: " + principal.getName() + ", isTyping=" + request.isTyping());
+        System.out.println("get event copy from " + principal.getName() + ", isTyping=" + request.isTyping());
 
         User user = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("User is not found"));
