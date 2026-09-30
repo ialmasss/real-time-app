@@ -27,31 +27,23 @@ A full-featured real-time chat application built with Spring Boot, featuring Web
 
 ## Architecture
 
-                 ┌─────────────┐
-                 │   Client    │
-                 └──────┬──────┘
-                        │ WebSocket / REST
-          ┌─────────────┴─────────────┐
-          │                           │
-┌───────▼───────┐           ┌───────▼───────┐
-│   Backend #1   │           │   Backend #2   │
-│  (Spring Boot) │           │  (Spring Boot) │
-└───────┬───────┘           └───────┬───────┘
-│                           │
-│      ┌─────────────┐      │
-└─────►│    Redis    │◄─────┘
-│      │  (Pub/Sub)  │      │
-│      └─────────────┘      │
-│                           │
-└─────────────┬─────────────┘
-│
-┌───────▼───────┐
-│  PostgreSQL   │
-└───────────────┘
+```mermaid
+graph TB
+    Client[Client]
+    Backend1[Backend #1<br/>Spring Boot]
+    Backend2[Backend #2<br/>Spring Boot]
+    Redis[(Redis<br/>Pub/Sub)]
+    Postgres[(PostgreSQL)]
 
+    Client -->|WebSocket / REST| Backend1
+    Client -->|WebSocket / REST| Backend2
+    Backend1 <--> Redis
+    Backend2 <--> Redis
+    Backend1 --> Postgres
+    Backend2 --> Postgres
+```
 
 The core idea: multiple backend instances run independently but stay in sync via Redis Pub/Sub. A user connected to Backend #1 receives messages sent by a user connected to Backend #2 instantly — without this synchronization, the message would stay confined to a single process.
-
 ## Running the Project
 
 ### Option 1 — Local (for development)
