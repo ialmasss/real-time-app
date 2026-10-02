@@ -1,5 +1,7 @@
 # Real-Time Chat Application
 
+🔗 **Live demo:** https://real-time-app-ltho.onrender.com
+
 A full-featured real-time chat application built with Spring Boot, featuring WebSocket-based messaging, horizontal scaling via Redis Pub/Sub, and Docker containerization.
 
 ## Features
@@ -106,7 +108,7 @@ Full test results are available in the [`load-tests/`](./load-tests/) directory.
 
 ## Roadmap
 
-- [ ] Deploy a live demo on Railway/Render
+- [x] Deploy a live demo on Railway/Render
 - [ ] Add a Flutter client
 - [ ] Rate limiting to prevent spam
 - [ ] Increase connection pool size and re-run load tests
