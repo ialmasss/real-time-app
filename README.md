@@ -45,6 +45,12 @@ graph TB
     Backend2 --> Postgres
 ```
 
+## Demo: cross-instance delivery
+
+A message sent through the backend on port 8081 is delivered in real time to a client connected to the backend on port 8082, via Redis Pub/Sub.
+
+![Two instances demo](docs/testingrealtime.gif)
+
 The core idea: multiple backend instances run independently but stay in sync via Redis Pub/Sub. A user connected to Backend #1 receives messages sent by a user connected to Backend #2 instantly — without this synchronization, the message would stay confined to a single process.
 ## Running the Project
 
