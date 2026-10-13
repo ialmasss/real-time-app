@@ -11,6 +11,7 @@ import com.example.realtimeapp.repository.ChatRepository;
 import com.example.realtimeapp.repository.MessageRepository;
 import com.example.realtimeapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -75,6 +76,10 @@ public class ChatController {
         Chat chat = chatRepository.findById(request.getChatId())
                 .orElseThrow(() -> new RuntimeException("Чат не найден"));
 
+        if (!chatRepository.existsByIdAndParticipants_Id(chat.getId(), sender.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not a member of this chat");
+        }
+
         Message message = new Message();
         message.setContent(request.getContent());
         message.setChat(chat);
@@ -86,7 +91,15 @@ public class ChatController {
     }
 
     @GetMapping("/{chatId}/messages")
-    public ResponseEntity<?> getMessages(@PathVariable Long chatId) {
+    public ResponseEntity<?> getMessages(@PathVariable Long chatId, Authentication authentication) {
+
+        User currentUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+
+        if (!chatRepository.existsByIdAndParticipants_Id(chatId, currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not a member of this chat");
+        }
 
         List<MessageDto> messages = messageRepository.findByChat_IdOrderBySentAtAsc(chatId)
                 .stream()

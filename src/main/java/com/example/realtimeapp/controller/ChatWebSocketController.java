@@ -51,6 +51,11 @@ public class ChatWebSocketController {
         User sender = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException(("User is not found")));
 
+
+        if (!chatRepository.existsByIdAndParticipants_Id(chat.getId(), sender.getId())) {
+            return;
+        }
+
         Message message = new Message();
         message.setContent(request.getContent());
         message.setChat(chat);
@@ -66,10 +71,13 @@ public class ChatWebSocketController {
     @MessageMapping("/chat.typing")
     public void handleTyping(TypingRequest request, Principal principal){
 
-        System.out.println("get event copy from " + principal.getName() + ", isTyping=" + request.isTyping());
-
         User user = userRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new RuntimeException("User is not found"));
+
+
+        if (!chatRepository.existsByIdAndParticipants_Id(request.getChatId(), user.getId())) {
+            return;
+        }
 
         TypingNotification notification = new TypingNotification(user.getUsername(), request.isTyping());
 
@@ -86,6 +94,11 @@ public class ChatWebSocketController {
         Message message = messageRepository.findById(request.getMessageId())
                 .orElseThrow(() -> new RuntimeException("Message is not found"));
 
+
+        if (!chatRepository.existsByIdAndParticipants_Id(message.getChat().getId(), user.getId())) {
+            return;
+        }
+
         message.getReadBy().add(user);
         messageRepository.save(message);
 
@@ -96,6 +109,4 @@ public class ChatWebSocketController {
                 notification
         );
     }
-
-
 }
