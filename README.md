@@ -112,9 +112,28 @@ Full test results are available in the [`load-tests/`](./load-tests/) directory.
 - REST endpoints are protected via Spring Security
 - WebSocket connections are authenticated through a custom interceptor at the STOMP CONNECT stage
 
+## Limitations & Design Notes
+
+This project is a portfolio/learning project. These are the known trade-offs:
+
+- **Only chat messages go through Redis Pub/Sub.** New messages are published to Redis and delivered to clients on every backend instance. Typing indicators, online/offline presence and read receipts are broadcast only within the instance that receives them, so with several instances they are visible only to clients connected to the same instance.
+- **Simple in-memory STOMP broker.** Subscriptions live in each instance's memory. For a production setup a full broker relay (RabbitMQ/ActiveMQ) or a sticky-session load balancer would be used.
+- **Authorization is membership-based.** Only chat participants can read history, send messages and subscribe to a chat's topics (REST and WebSocket). There are no roles (admin/moderator) inside group chats.
+- **JWT without refresh tokens.** Tokens expire after 24 hours; the user logs in again.
+- **No rate limiting.** Login and messaging endpoints are not throttled.
+- **Load test covers login only.** The k6 scenario measures `POST /api/auth/login` (CPU-heavy because of BCrypt). Message throughput over WebSocket has not been load-tested. The degradation at 200 VUs is most likely the default HikariCP pool size (10 connections per instance); tuning it is a next step.
+- **Free-tier hosting.** The live demo runs on Render's free plan, so the first request after a period of inactivity can take up to a minute while the service wakes up.
+
 ## Roadmap
 
-- [x] Deploy a live demo on Railway/Render
-- [ ] Add a Flutter client
-- [ ] Rate limiting to prevent spam
-- [ ] Increase connection pool size and re-run load tests
+- [x] Real-time messaging (STOMP over WebSocket)
+- [x] JWT authentication (REST + WebSocket)
+- [x] Multi-instance delivery via Redis Pub/Sub
+- [x] Docker / Docker Compose setup
+- [x] Load testing with k6
+- [x] Live demo deployment
+- [x] Chat membership authorization
+- [ ] Sync typing / presence / read receipts across instances via Redis
+- [ ] Tune the connection pool and re-run load tests
+- [ ] Rate limiting
+- [ ] Flutter client

@@ -1,0 +1,21 @@
+# Copy this file to src/main/resources/application.properties
+# and replace the placeholder values with your own.
+# NEVER commit the real application.properties (it is in .gitignore).
+
+# --- PostgreSQL ---
+spring.datasource.url=jdbc:postgresql://localhost:5432/realtime_app
+spring.datasource.username=YOUR_DB_USER
+spring.datasource.password=YOUR_DB_PASSWORD
+
+# Create/update tables automatically on startup
+spring.jpa.hibernate.ddl-auto=update
+
+# --- Redis (Pub/Sub for multi-instance message delivery) ---
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+
+# --- JWT ---
+# Secret must be at least 32 characters long. Generate your own random string.
+jwt.secret=CHANGE_ME_TO_A_LONG_RANDOM_STRING_AT_LEAST_32_CHARS
+# Token lifetime in milliseconds (86400000 = 24 hours)
+jwt.expiration=86400000
