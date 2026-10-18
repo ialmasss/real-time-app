@@ -39,7 +39,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             return message;
         }
 
-
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
             String authHeader = accessor.getFirstNativeHeader("Authorization");
@@ -54,6 +53,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             }
         }
 
+        if (StompCommand.SEND.equals(accessor.getCommand())) {
+
+            String destination = accessor.getDestination();
+
+            if (destination == null || !destination.startsWith("/app/")) {
+                throw new MessagingException("Access denied: clients can send only to /app/**");
+            }
+        }
 
         if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
 
@@ -78,7 +85,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
         return message;
     }
-
 
     private Long extractChatId(String destination) {
         String rest = destination.substring(CHAT_TOPIC_PREFIX.length());
